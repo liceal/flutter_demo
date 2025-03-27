@@ -1,27 +1,38 @@
+import 'dart:math';
+
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+// 主入口
 void main() {
+  // 运行myapp
   runApp(MyApp());
 }
 
+/*
+  StatelessWidget 创建一个widget 部件
+ */
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key}); //集成父级的key 提高渲染性能，就跟vue for循环的key标记一样
 
-  @override
+  @override //重写父类
+  //构建方法，返回一个widget 部件
   Widget build(BuildContext context) {
+    //创建一个provider 提供数据
     return ChangeNotifierProvider(
-      create: (context) => MyAppState(),
+      create: (context) => MyAppState(), //创建时运行 初始状态类
       child: MaterialApp(
-        title: 'App name',
+        //一般放在顶级 提供MaterialDesign风格的UI组件
+        title: 'App name', //APP标题 显示在顶部
         theme: ThemeData(
+          //主题，使用MaterialDesign风格的UI组件
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
         ),
-        home: MyHomePage(),
+        home: MyHomePage(), //内容渲染
       ),
     );
   }
@@ -102,18 +113,28 @@ class MyAppState extends ChangeNotifier {
   }
 }
 
+/*
+  主要内容渲染
+  StateFulWidget 用于需要维护状态的组件
+  进行UI和状态分离，这样渲染时不会让组件内的状态丢失
+ */
 class MyHomePage extends StatefulWidget {
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+/*
+  状态类，用于维护状态
+  渲染时会调用build方法，返回一个widget 部件
+ */
 class _MyHomePageState extends State<MyHomePage> {
   var selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    Widget page;
+    Widget page; //定义一个部件变量 用于存储目前渲染的部件
     switch (selectedIndex) {
+      // 根据变量渲染不同的部件
       case 0:
         page = GeneratorPage();
         break;
@@ -124,23 +145,31 @@ class _MyHomePageState extends State<MyHomePage> {
         throw UnimplementedError();
     }
 
+    // 布局容器，用于自适应布局
     return LayoutBuilder(
       builder: (context, constraints) {
+        /*
+          SafeArea 用于防止内容被状态栏遮挡
+          NavigationRail 用于显示导航栏
+          NavigationRailDestination 用于显示导航栏项
+         */
         SafeArea menu = SafeArea(
           child: NavigationRail(
-            extended: constraints.maxWidth >= 600,
+            extended: constraints.maxWidth >= 600, //宽度大于600时会展开
             destinations: [
+              //导航栏
               NavigationRailDestination(
-                icon: Icon(Icons.home),
-                label: Text('Home'),
+                icon: Icon(Icons.home), //图标
+                label: Text('Home'), //在展开的时候显示文字
               ),
               NavigationRailDestination(
                 icon: Icon(Icons.favorite),
                 label: Text('Favorites'),
               ),
             ],
-            selectedIndex: selectedIndex,
+            selectedIndex: selectedIndex, //导航栏显示的索引 0是第一个
             onDestinationSelected: (value) {
+              //点击导航栏 更新索引
               print('selected: $value');
               setState(() {
                 selectedIndex = value;
@@ -148,21 +177,28 @@ class _MyHomePageState extends State<MyHomePage> {
             },
           ),
         );
+        // 底部tab栏
         BottomNavigationBar bottomNavigationBar = BottomNavigationBar(
-          currentIndex: selectedIndex,
+          currentIndex: selectedIndex, //当前选中的索引
           onTap: (value) {
+            //点击tab栏 更新索引
             setState(() {
               selectedIndex = value;
             });
           },
+          // 底部tab栏项
           items: [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ), //图标和文字
             BottomNavigationBarItem(
               icon: Icon(Icons.favorite),
               label: 'Favorites',
             ),
           ],
         );
+        // 主体部分
         Expanded main = Expanded(
           child: Container(
             color: Theme.of(context).colorScheme.primaryContainer,
@@ -171,8 +207,19 @@ class _MyHomePageState extends State<MyHomePage> {
         );
 
         if (constraints.maxWidth < 450) {
-          return Scaffold(body: main, bottomNavigationBar: bottomNavigationBar);
+          //大小小于450时的骨架 有body和底部栏
+          return Scaffold(
+            body: main,
+            bottomNavigationBar: bottomNavigationBar,
+            floatingActionButton: FloatingActionButton(
+              onPressed: () {
+                print('add favorite');
+              },
+              child: Icon(Icons.add),
+            ),
+          );
         } else {
+          //其他比较大的时候 就主体部分 然后分左右两个
           return Scaffold(body: Row(children: [menu, main]));
         }
       },
@@ -180,6 +227,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+/*
+  收藏页面
+  显示喜欢的列表
+  点击删除按钮 从列表中删除
+ */
 class FavoritesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -216,6 +268,11 @@ class FavoritesPage extends StatelessWidget {
   }
 }
 
+/*
+  生成页面
+  显示随机的单词对
+  点击喜欢按钮 加入收藏
+ */
 class GeneratorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -269,8 +326,15 @@ class GeneratorPage extends StatelessWidget {
   }
 }
 
+/*
+  大卡片 中间的大红卡片
+  显示随机的单词对
+ */
 class BigCard extends StatelessWidget {
-  const BigCard({super.key, required this.pair});
+  const BigCard({
+    super.key,
+    required this.pair,
+  }); //集成父级的key 提高渲染性能，就跟vue for循环的key标记一样 required表示必须传递
 
   final WordPair pair;
 
@@ -295,7 +359,10 @@ class BigCard extends StatelessWidget {
   }
 }
 
-// 历史列表
+/*
+  历史列表 显示历史记录
+  点击删除按钮 从列表中删除
+ */
 class HistoryListView extends StatefulWidget {
   const HistoryListView({Key? key}) : super(key: key);
 
@@ -303,63 +370,93 @@ class HistoryListView extends StatefulWidget {
   State<HistoryListView> createState() => _HistoryListViewState();
 }
 
+/*
+  历史列表的状态类 用于维护状态
+  渲染时会调用build方法，返回一个widget 部件
+  点击删除按钮 触发removeHistory方法
+  点击喜欢按钮 触发totalHistory方法
+ */
 class _HistoryListViewState extends State<HistoryListView> {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
 
-    return ShaderMask(
+    /*
+      构建喜欢的单项
+      参数是一个HistoryItem对象 表示一个历史记录
+      返回一个widget 部件
+    */
+    Widget buildFavoriteItem(HistoryItem item, Animation<double> animation) {
+      return SizeTransition(
+        sizeFactor: animation,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              child: Row(
+                children: [
+                  TextButton.icon(
+                    onPressed: () {
+                      appState.totalHistory(item);
+                    },
+                    icon:
+                        item.isFavorite
+                            ? Icon(Icons.favorite)
+                            : SizedBox.shrink(),
+                    label: Text(item.favorite.asSnakeCase),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      appState.removeHistory(item);
+                    },
+                    child: Icon(Icons.delete),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    /*
+      有动画的列表
+      列表项为AnimatedList中的每一项，使用Animation<double>来表示列表项的动画状态
+      列表项的动画状态由appState.historyAnimatedListController来控制
+      列表项的key为appState.historyKey
+    */
+    AnimatedList favoriteList = AnimatedList(
+      controller: appState.historyAnimatedListController,
+      key: appState.historyKey,
+      initialItemCount: appState.history.length,
+      itemBuilder: (context, index, animation) {
+        var item = appState.history[index];
+        return buildFavoriteItem(item, animation); //渲染每一项
+      },
+    );
+
+    /*
+      遮罩层
+      用于将列表项的动画状态应用到列表项上
+      遮罩层的shaderCallback方法用于创建一个渐变效果
+      遮罩层的blendMode属性用于指定混合模式
+     */
+    ShaderMask shaderMask = ShaderMask(
       shaderCallback: (Rect bounds) {
         return LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Colors.transparent, Colors.black],
-          stops: [0.0, 0.2],
+          colors: [Colors.transparent, Colors.black], //第一个是透明 第二个是黑色
+          stops: [
+            0.0,
+            0.2,
+          ], //这里两个 就是上面的colors两个 指的是 第一个颜色从0.0开始 到0.2的时候开始渲染第二个颜色 渐变过来的
         ).createShader(bounds);
       },
-      blendMode: BlendMode.dstIn,
-      child: AnimatedList(
-        controller: appState.historyAnimatedListController,
-        key: appState.historyKey,
-        initialItemCount: appState.history.length,
-        itemBuilder: (context, index, animation) {
-          var item = appState.history[index];
-          return SizeTransition(
-            sizeFactor: animation,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 5,
-                    horizontal: 10,
-                  ),
-                  child: Row(
-                    children: [
-                      TextButton.icon(
-                        onPressed: () {
-                          appState.totalHistory(item);
-                        },
-                        icon:
-                            item.isFavorite
-                                ? Icon(Icons.favorite)
-                                : SizedBox.shrink(),
-                        label: Text(item.favorite.asSnakeCase),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          appState.removeHistory(item);
-                        },
-                        child: Icon(Icons.delete),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+      blendMode: BlendMode.dstIn, //这个模式 就是黑色的部分会显示出来 其他的部分会透明
+      child: favoriteList,
     );
+    return shaderMask;
   }
 }
